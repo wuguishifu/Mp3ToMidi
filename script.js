@@ -29,7 +29,7 @@ let ln = 0;
     out.write('done\n');
     out.write('converting to midi...\n');
     ln++;
-    await mp3ToMidi({ path: `${__dirname}/original/file.mp3`, name }) // convert to midi
+    await mp3ToMidi({ path: `${__dirname}/original/${name}.mp3`, name }) // convert to midi
     for (let i = 0; i < ln; i++) {
         out.moveCursor(0, -1)
         out.clearLine();
@@ -38,7 +38,7 @@ let ln = 0;
     ln = 0;
     out.write('converting to mp3...\n');
     ln++;
-    await midiToMp3({ path: `${__dirname}/midi/file.mid`, name }); // convert to mp3
+    await midiToMp3({ path: `${__dirname}/midi/${name}.mid`, name }); // convert to mp3
     for (let i = 0; i < ln; i++) {
         out.moveCursor(0, -1)
         out.clearLine();
