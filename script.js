@@ -113,7 +113,7 @@ module.exports.parallel = async () => {
         const [videoUrl] = rows[i];
         if (videoUrl.toLowerCase() === 'youtube link') continue;
         const name = i.toString();
-        !args['no-verbose'] && console.log(`---- converting ${videoUrl} (${name}.mp3) ----\n`);
+        !args['no-verbose'] && console.log(`---- converting ${videoUrl} (${name}.mp3) ----`);
         promises.push(new Promise(resolve => {
             (async () => {
                 const now = performance.now();
