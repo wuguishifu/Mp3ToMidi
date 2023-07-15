@@ -103,6 +103,7 @@ module.exports.parallel = async () => {
     const rows = await parseSetlist(`${__dirname}/setlist.csv`);
     const keys = [];
     const promises = [];
+    const bigNow = performance.now();
     for (let i = 0; i < rows.length; i++) {
         keys[i] = [...rows[i]];
         if (i > 0) {
@@ -125,7 +126,7 @@ module.exports.parallel = async () => {
         }));
     }
     await Promise.all(promises);
-    !args['no-verbose'] && console.log('\nfull setlist done.\n');
+    !args['no-verbose'] && console.log(`\nfull setlist done. (${Math.round((performance.now() - bigNow) / 10) / 100}s)\n`);
     fs.writeFileSync(`${__dirname}/key.csv`, keys.join('\n'));
 }
 
