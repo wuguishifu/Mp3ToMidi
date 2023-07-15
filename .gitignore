@@ -1,1 +1,8 @@
 node_modules
+setlist.csv
+key.*
+
+midi/*
+mp3/*
+original/*
+set/*

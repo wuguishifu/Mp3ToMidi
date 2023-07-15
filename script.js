@@ -1,5 +1,6 @@
 const youtubeMp3Converter = require('youtube-mp3-converter');
 const fs = require('fs');
+const csv = require('csv-parse');
 const axios = require('axios');
 const FormData = require('form-data');
 const { Readable } = require('stream');
@@ -12,12 +13,8 @@ const convertLinkToMp3 = youtubeMp3Converter(`${__dirname}/original`);
 
 let ln = 0;
 
-(async () => {
-    out.write('checking project structure...');
-    if (!fs.existsSync(`${__dirname}/original`)) fs.mkdirSync(`${__dirname}/original`);
-    if (!fs.existsSync(`${__dirname}/midi`)) fs.mkdirSync(`${__dirname}/midi`);
-    if (!fs.existsSync(`${__dirname}/mp3`)) fs.mkdirSync(`${__dirname}/mp3`);
-    out.write('done\n');
+module.exports.run = async () => {
+    checkFileStructure();
 
     const videoUrl = prompt('Enter youtube video url: ');
     if (!videoUrl.trim()) return console.log('please enter a url lol');
@@ -44,7 +41,67 @@ let ln = 0;
         out.clearLine();
     };
     out.write('converting to mp3...done\n');
-})().then(() => process.exit(0));
+};
+
+module.exports.setlist = async () => {
+    checkFileStructure();
+    const rows = await parseSetlist(`${__dirname}/setlist.csv`);
+    const keys = [];
+    for (let i = 0; i < rows.length; i++) {
+        const [videoUrl] = rows[i];
+        keys[i] = [...rows[i]];
+        if (i > 0) {
+            keys[i][0] = `${i}.mp3`
+        } else {
+            keys[i][0] = 'File Name'
+        }
+        if (videoUrl === 'Youtube Link') continue;
+        const name = i.toString();
+        out.write(`---- converting ${videoUrl} (${name}.mp3) ----\n`);
+        ln = 0;
+        out.write('downloading mp3...');
+        await convertLinkToMp3(videoUrl, { title: name }); // download mp3
+        out.write('done\n');
+        out.write('converting to midi...\n');
+        ln++;
+        await mp3ToMidi({ path: `${__dirname}/original/${name}.mp3`, name }) // convert to midi
+        for (let i = 0; i < ln; i++) {
+            out.moveCursor(0, -1)
+            out.clearLine();
+        };
+        out.write('converting to midi...done\n');
+        ln = 0;
+        out.write('converting to mp3...\n');
+        ln++;
+        await midiToMp3({ path: `${__dirname}/midi/${name}.mid`, name }); // convert to mp3
+        for (let i = 0; i < ln; i++) {
+            out.moveCursor(0, -1)
+            out.clearLine();
+        };
+        out.write('converting to mp3...done\n');
+    }
+    out.write('\nfull setlist done.\n');
+    fs.writeFileSync(`${__dirname}/key.csv`, keys.join('\n'));
+};
+
+const parseSetlist = (path) => {
+    return new Promise(resolve => {
+        const rows = [];
+        fs.createReadStream(path)
+            .pipe(csv.parse({ delimiter: ',', columns: false, ltrim: true }))
+            .on('data', (row) => rows.push(row))
+            .on('error', console.error)
+            .on('end', () => resolve(rows))
+    });
+}
+
+const checkFileStructure = () => {
+    out.write('checking project structure...');
+    if (!fs.existsSync(`${__dirname}/original`)) fs.mkdirSync(`${__dirname}/original`);
+    if (!fs.existsSync(`${__dirname}/midi`)) fs.mkdirSync(`${__dirname}/midi`);
+    if (!fs.existsSync(`${__dirname}/set`)) fs.mkdirSync(`${__dirname}/set`);
+    out.write('done\n');
+}
 
 const mp3ToMidi = async ({ path, name }) => {
     // upload original mp3
@@ -145,7 +202,7 @@ const midiToMp3 = async ({ path, name }) => {
         genfpath: midiToMp3Attribs[2],
         downloadsavename: 'file.mp3'
     };
-    await downloadFile(`https://cts.ofoct.com/get-file.php?${new URLSearchParams(mp3Options).toString()}`, `${__dirname}/mp3/${name}.mp3`)
+    await downloadFile(`https://cts.ofoct.com/get-file.php?${new URLSearchParams(mp3Options).toString()}`, `${__dirname}/set/${name}.mp3`)
     out.write('done\n');
     ln++;
 }

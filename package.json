@@ -4,16 +4,20 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node script.js"
+    "start": "node runner.js",
+    "setlist": "node runner.js --setlist"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "axios": "^1.4.0",
+    "csv-parse": "^5.4.0",
     "express": "^4.18.2",
     "form-data": "^4.0.0",
+    "minimist": "^1.2.8",
     "multer": "^1.4.5-lts.1",
     "prompt-sync": "^4.2.0",
-    "youtube-mp3-converter": "^1.0.3"
+    "youtube-mp3-converter": "^1.0.3",
+    "ytdl-core": "^4.11.5"
   }
 }
