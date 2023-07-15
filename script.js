@@ -116,10 +116,11 @@ module.exports.parallel = async () => {
         !args['no-verbose'] && console.log(`---- converting ${videoUrl} (${name}.mp3) ----\n`);
         promises.push(new Promise(resolve => {
             (async () => {
+                const now = performance.now();
                 await convertLinkToMp3(videoUrl, { title: name }); // download mp3
                 await mp3ToMidi({ path: `${__dirname}/original/${name}.mp3`, name }) // convert to midi
                 await midiToMp3({ path: `${__dirname}/midi/${name}.mid`, name }); // convert to mp3
-                !args['no-verbose'] && console.log(`finised converting ${name}.mp3`);
+                !args['no-verbose'] && console.log(`finised converting ${name}.mp3 (${(performance.now() - now) / 1000}s)})`);
             })().then(() => resolve());
         }));
     }
