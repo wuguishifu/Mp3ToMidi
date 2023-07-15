@@ -120,7 +120,7 @@ module.exports.parallel = async () => {
                 await convertLinkToMp3(videoUrl, { title: name }); // download mp3
                 await mp3ToMidi({ path: `${__dirname}/original/${name}.mp3`, name }) // convert to midi
                 await midiToMp3({ path: `${__dirname}/midi/${name}.mid`, name }); // convert to mp3
-                !args['no-verbose'] && console.log(`finised converting ${name}.mp3 (${Math.round((performance.now() - now) / 10) / 100}s)})`);
+                !args['no-verbose'] && console.log(`finised converting ${name}.mp3 (${Math.round((performance.now() - now) / 10) / 100}s)`);
             })().then(() => resolve());
         }));
     }
