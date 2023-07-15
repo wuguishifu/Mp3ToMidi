@@ -7,7 +7,13 @@ const { Readable } = require('stream');
 const { finished } = require('stream/promises')
 const prompt = require('prompt-sync')({ sigint: true });
 
-const out = process.stdout;
+const args = require('minimist')(process.argv.slice(2));
+
+const out = args.quiet ? {
+    write: () => true,
+    moveCursor: () => true,
+    clearLine: () => true
+} : process.stdout;
 
 const convertLinkToMp3 = youtubeMp3Converter(`${__dirname}/original`);
 
@@ -41,9 +47,10 @@ module.exports.run = async () => {
         out.clearLine();
     };
     out.write('converting to mp3...done\n');
+    !args['no-verbose'] && console.log('finished conversion');
 };
 
-module.exports.setlist = async () => {
+module.exports.setlist = async (startAt) => {
     checkFileStructure();
     const rows = await parseSetlist(`${__dirname}/setlist.csv`);
     const keys = [];
@@ -55,9 +62,10 @@ module.exports.setlist = async () => {
         } else {
             keys[i][0] = 'File Name'
         }
-        if (videoUrl === 'Youtube Link') continue;
+        if (videoUrl.toLowerCase() === 'youtube link') continue;
+        if (i < startAt) continue;
         const name = i.toString();
-        out.write(`---- converting ${videoUrl} (${name}.mp3) ----\n`);
+        !args['no-verbose'] && console.log(`---- converting ${videoUrl} (${name}.mp3) ----\n`);
         ln = 0;
         out.write('downloading mp3...');
         await convertLinkToMp3(videoUrl, { title: name }); // download mp3
@@ -80,9 +88,45 @@ module.exports.setlist = async () => {
         };
         out.write('converting to mp3...done\n');
     }
-    out.write('\nfull setlist done.\n');
+    !args['no-verbose'] & console.log('\nfull setlist done.\n');
     fs.writeFileSync(`${__dirname}/key.csv`, keys.join('\n'));
 };
+
+module.exports.parallel = async () => {
+    checkFileStructure();
+
+    // disable so it doesn't look like crap lmao
+    out.write = () => true;
+    out.moveCursor = () => true;
+    out.clearLine = () => true;
+
+    const rows = await parseSetlist(`${__dirname}/setlist.csv`);
+    const keys = [];
+    const promises = [];
+    for (let i = 0; i < rows.length; i++) {
+        keys[i] = [...rows[i]];
+        if (i > 0) {
+            keys[i][0] = `${i}.mp3`
+        } else {
+            keys[i][0] = 'File Name'
+        }
+        const [videoUrl] = rows[i];
+        if (videoUrl.toLowerCase() === 'youtube link') continue;
+        const name = i.toString();
+        !args['no-verbose'] && console.log(`---- converting ${videoUrl} (${name}.mp3) ----\n`);
+        promises.push(new Promise(resolve => {
+            (async () => {
+                await convertLinkToMp3(videoUrl, { title: name }); // download mp3
+                await mp3ToMidi({ path: `${__dirname}/original/${name}.mp3`, name }) // convert to midi
+                await midiToMp3({ path: `${__dirname}/midi/${name}.mid`, name }); // convert to mp3
+                !args['no-verbose'] && console.log(`finised converting ${name}.mp3`);
+            })().then(() => resolve());
+        }));
+    }
+    await Promise.all(promises);
+    !args['no-verbose'] && console.log('\nfull setlist done.\n');
+    fs.writeFileSync(`${__dirname}/key.csv`, keys.join('\n'));
+}
 
 const parseSetlist = (path) => {
     return new Promise(resolve => {

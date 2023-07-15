@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node runner.js",
-    "setlist": "node runner.js --setlist"
+    "setlist": "node runner.js --setlist",
+    "parallel": "node runner.js --parallel --quiet"
   },
   "author": "",
   "license": "ISC",
