@@ -27,10 +27,22 @@
         "createDir": true,
         "removeDir": true,
         "removeFile": true,
-        "exists": true
+        "exists": true,
+        "scope": [
+          "$HOME/*"
+        ]
       },
       "path": {
         "all": true
+      },
+      "http": {
+        "all": true,
+        "request": true,
+        "scope": [
+          "https://cts.ofoct.com/*",
+          "http://localhost:3000/*",
+          "https://www.bearaudiotool.com/*"
+        ]
       }
     },
     "bundle": {

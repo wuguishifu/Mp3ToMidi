@@ -1,3 +1,19 @@
+.pending {
+    color: #FFA500;
+}
+
+.processing {
+    color: #4169E1;
+}
+
+.success {
+    color: #008000;
+}
+
+.failed {
+    color: #FF0000;
+}
+
 .float {
     box-shadow: 0 0 53px 4px rgba(0, 0, 0, 0.07);
 }
