@@ -8,6 +8,7 @@ const prompt = require('prompt-sync')({ sigint: true });
 const args = require('minimist')(process.argv.slice(2));
 const ytdl = require('@distube/ytdl-core');
 const ffmpeg = require('fluent-ffmpeg');
+const readline = require('readline');
 
 const out = args.quiet ? {
     write: () => true,
@@ -239,15 +240,23 @@ async function downloadMp3(url, name) {
         filter: 'audioonly',
         quality: 'highestaudio',
     });
-    ffmpeg(stream)
-        .audioBitrate(128)
-        .save(`${__dirname}/original/${name}.mp3`)
-        .on('progress', p => {
-            readline.cursorTo(process.stdout, 0);
-            process.stdout.write(`${name}.mp3 ${p.targetSize}kb downloaded`);
-        })
-        .on('end', () => console.log(`\n${name}.mp3 downloaded`))
-        .on('error', console.error);
+
+    await new Promise((resolve, reject) => {
+        ffmpeg(stream)
+            .audioBitrate(128)
+            .save(`${__dirname}/original/${name}.mp3`)
+            .on('progress', p => {
+                if (args.quiet) return;
+                readline.cursorTo(process.stdout, 0);
+                process.stdout.write(`${name}.mp3 ${p.targetSize}kb downloaded`);
+            })
+            .on('end', () => {
+                resolve();
+                if (args.quiet) return;
+                console.log(`\n${name}.mp3 downloaded`)
+            })
+            .on('error', reject);
+    })
 }
 
 async function downloadFile(link, outpath) {
