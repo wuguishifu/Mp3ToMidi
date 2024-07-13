@@ -6,3 +6,8 @@ midi/*
 mp3/*
 original/*
 set/*
+
+!midi/.gitkeep
+!mp3/.gitkeep
+!original/.gitkeep
+!set/.gitkeep
