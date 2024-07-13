@@ -1,5 +1,5 @@
 const args = require('minimist')(process.argv.slice(2));
-const { run, setlist, parallel } = require('./script.js');
+const { run, setlist, parallel } = require('./script');
 
 if (args.setlist) {
     setlist(args['start-at'] || 0).then(() => process.exit(0));
