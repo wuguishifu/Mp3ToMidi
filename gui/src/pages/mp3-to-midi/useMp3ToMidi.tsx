@@ -7,18 +7,16 @@ export default function useMp3ToMidi() {
         const client = await getClient();
 
         // use tauri to upload the original mp3 file
-        const body = Body.form({
-            myfile: { file: path }
-        });
+        const body = Body.form({ myfile: { file: path } });
 
         // const response = await client.post('http://localhost:3000/test', body, {
         const response = await client.post('https://cts.ofoct.com/upload.php', body, {
             headers: {
+                connection: 'keep-alive',
                 Cookie: 'PHPSESSID=2v0ikhmltckms8uaagfsaqva46',
                 'Content-Type': 'multipart/form-data',
                 Accept: 'text/html'
             },
-            timeout: 5000,
             responseType: ResponseType.Text
         });
 
